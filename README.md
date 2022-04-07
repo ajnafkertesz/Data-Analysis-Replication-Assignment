@@ -1,2 +1,2 @@
 # Data-Analysis-Replication-Assignment
-Replication the findings of Gelfand et al. 2021
+Replicating the findings of Gelfand et al. 2021
