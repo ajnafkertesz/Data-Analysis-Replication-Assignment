@@ -13,26 +13,123 @@ output:
     toc: yes
 ---
 
-# This project is aimed and replicating some of the major findings of Gelnd et al. 2021 using open access data on COVID-19, as well as CTL scores by countries
-
-
 ```{r setup, include=FALSE, message=FALSE, warning=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.path = "images/")
 ```
 
-## R Markdown
+### Data Replication Assignment using Gelfand et al. 2021
+
+This project is aimed and replicating some of the major findings of Gelfand et al. 2021 using open access data on COVID-19, as well as CTL scores by countries. The original cross-national analysis used Cultural Tightness Looseness (CTL) Scores to predict COVID-19 cases and death. Previous studies indicate that there is a large between-country variation in CTL scores. Some countries are more "tight", which means they have more norms in their society and they follow these norms more closely, while other countries are more "loose", with less norms and expectations in their society. The COVID-19 pandemic presented and interesting situation, where norm conformity and compliance with new norms and health recommendations (e.g., mask-wearing, social distancing...etc) became a direct predictor of infection and death rates. Therefore Gelfand and her colleges were interested in investigating weather traditionally tighter countries did indeed have lower infection and death rates. To do this they used ordinary least squares regression models where CTL was used as a predictor of COVID-19 infection rates. Next they ran a second regression using CTL as a predictor of COVID-19 death rates. In both models, they adjusted for a number of covariaties including GINI, population density, power distance, local stay-at-home mandates...etc.
 
 
-```{r cars}
-summary(cars)
+```{r lib and data, echo=FALSE, message=FALSE, warning=FALSE}
+# load all libraries that will be needed
+library(dbplyr)
+library(tidyr)
+library(readr)
+library(tidyverse)
+library(car)
+library(ggplot2)
+
+#read in data
+
+data <- read_csv("data/Data.csv")
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r explore and transfrom data, echo=FALSE}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+#look at the dataframe, see what variables do we have
+head(data)
+
+#centering variables by zscorsing them using the scale function
+
+data<-data%>%
+  mutate(ZTightness        = scale(Tightness),
+         ZStringencyIndex  = scale(StringencyIndex),
+         Zday_diff         = scale(day_diff),
+         ZPowerdistance    = scale(Powerdistance),
+         ZRelatiolMobility = scale (RelatiolMobility),
+         ZGovernment.efficiency = scale (Government.efficiency),
+         ZGDP.capita = scale(GDP.capita),
+         ZGini = scale(Gini),
+         ZMedian_Age = scale(Median_Age),
+         ZUnderreporting = scale(Underreporting),
+         ZAuthoritarian = scale(Authoritarian),
+         ZMortality = scale(Mortality), 
+         ZpercentMigrants = scale(percentMigrants), 
+         ZOct16_total_cases_per_million = scale(Oct16_total_cases_per_million),
+         ZOct16_total_deaths_per_million= scale(Oct16_total_deaths_per_million),
+         ZOct16_total_tests_per_thousand= scale(Oct16_total_tests_per_thousand))
+
+
+#calculating and centering collectivism based on individualism
+data$Collectivism<-(0-data$Individualism)+100
+data$ZCollectivism<-scale(data$Collectivism)
+
+
+#using log calculation to decrease skew in these large datasets with potentially many outliers (e.g. depending on healthcare quality and access these numbers could look vastly different)
+data$logpopulation<-log(data$population)
+data$Zlog_PopDensity<-scale(log(data$Population.density+1))
+data$ZLogBeds<-scale(log(data$hospital_beds_per_thousand))
+data$OCTCases<-log(data$Oct16_total_cases_per_million)
+data$OCTDeaths<-log(data$Oct16_total_deaths_per_million)
+
+#calculating a distribution of test/cases (in many countries only the really sick got tested, which might make it seem like the cases were low)
+data$TestsPerCaseOct<-data$Oct16_total_tests/data$Oct16_total_cases
+
+
+```
+## Reproducing Figue 1: The association of cultural tightness and logged cases per million (Oct 2020) *the scatterplot doesn't inlcude any covariates
+
+
+```{r regression 1, echo=FALSE, message=FALSE, warning=FALSE}
+
+# run regression without controls # I looked at the code and they ran a correlation actually to produce the graph so maybe I should too?
+lm(OCTCases~ZTightness, data=data)
+
+data %>%
+ ggplot(aes(x = ZTightness, y = OCTCases)) +
+ geom_point(colour = "red") + geom_text(hjust=0.05, nudge_x = 0.05, label=data$Country)+
+  geom_smooth(method = "lm", fill = NA)+
+  labs(x="Cultural Tightness", y="Log of COVID-19 cases per million as of Oct 16")
+
+
+lmodel <- lm(sqrt(ZTightness) ~ sqrt(OCTCases), data = data)
+lmodel$coefficients
+summary(lmodel)
+
+#add in controls #how did they decide what to add in which model? They had 10 models!!
+
+#lm(OCTCases~ZTightness+, data=data)
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Reproducing Figue 2: The association of cultural tightness and logged deaths per million (Oct 2020) *the scatterplot doesn't inlcude any covariates
+
+
+```{r regression 2, echo=FALSE, message=FALSE, warning=FALSE}
+
+# run regression without controls # I looked at the code and they ran a correlation actually to produce the graph so maybe I should too?
+lm(OCTDeaths~ZTightness, data=data)
+
+data %>%
+ ggplot(aes(x = ZTightness, y = OCTDeaths)) +
+ geom_point(colour = "red") + geom_text(hjust=0.05, nudge_x = 0.05, label=data$Country)+
+  geom_smooth(method = "lm", fill = NA)+
+  labs(x="Cultural Tightness", y="Log of COVID-19 deaths per million as of Oct 16")
+
+
+lmodel <- lm(sqrt(ZTightness) ~ sqrt(OCTDeaths), data = data)
+lmodel$coefficients
+summary(lmodel)
+
+#add in controls #how did they decide what to add in which model? They had 10 models!!
+
+#lm(OCTDeaths~ZTightness+, data=data)
+
+```
+
+
+
+
