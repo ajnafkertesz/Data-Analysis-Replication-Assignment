@@ -1,0 +1,38 @@
+---
+title: "Gelfand et al 2021- replicate"
+author: "Ajna Kertesz"
+date: "4/7/2022"
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    theme: united
+  pdf_document:
+    toc: yes
+---
+
+# This project is aimed and replicating some of the major findings of Gelnd et al. 2021 using open access data on COVID-19, as well as CTL scores by countries
+
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
