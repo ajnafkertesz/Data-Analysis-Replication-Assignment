@@ -1,13 +1,10 @@
 ---
-title: "Gelfand et al 2021- replicate"
+title: "Data Replication Assignment using Gelfand et al. 2021"
 author: "Ajna Kertesz"
 date: "4/7/2022"
 output:
   html_document:
     toc: yes
-    toc_float:
-      collapsed: false
-      smooth_scroll: false
     theme: united
   pdf_document:
     toc: yes
@@ -17,9 +14,13 @@ output:
 knitr::opts_chunk$set(echo = TRUE, fig.path = "images/")
 ```
 
-### Data Replication Assignment using Gelfand et al. 2021
+## Briefly about the project
 
-This project is aimed and replicating some of the major findings of Gelfand et al. 2021 using open access data on COVID-19, as well as CTL scores by countries. The original cross-national analysis used Cultural Tightness Looseness (CTL) Scores to predict COVID-19 cases and death. Previous studies indicate that there is a large between-country variation in CTL scores. Some countries are more "tight", which means they have more norms in their society and they follow these norms more closely, while other countries are more "loose", with less norms and expectations in their society. The COVID-19 pandemic presented and interesting situation, where norm conformity and compliance with new norms and health recommendations (e.g., mask-wearing, social distancing...etc) became a direct predictor of infection and death rates. Therefore Gelfand and her colleges were interested in investigating weather traditionally tighter countries did indeed have lower infection and death rates. To do this they used ordinary least squares regression models where CTL was used as a predictor of COVID-19 infection rates. Next they ran a second regression using CTL as a predictor of COVID-19 death rates. In both models, they adjusted for a number of covariaties including GINI, population density, power distance, local stay-at-home mandates...etc.
+This project is aimed and replicating some of the major findings of Gelfand et al. 2021 using open access data on COVID-19, as well as CTL scores by countries. 
+
+The original cross-national analysis used Cultural Tightness Looseness (CTL) Scores to predict COVID-19 cases and death. Previous studies indicate that there is a large between-country variation in CTL scores. Some countries are more "tight", which means they have more norms in their society and they follow these norms more closely, while other countries are more "loose", with less norms and expectations in their society. The COVID-19 pandemic presented and interesting situation, where norm conformity and compliance with new norms and health recommendations (e.g., mask-wearing, social distancing...etc) became a direct predictor of infection and death rates. Therefore Gelfand and her colleges were interested in investigating weather traditionally tighter countries did indeed have lower infection and death rates. 
+
+To do this they used ordinary least squares regression models where CTL was used as a predictor of COVID-19 infection rates. Next they ran a second regression using CTL as a predictor of COVID-19 death rates. In both models, they adjusted for a number of covariaties including GINI, population density, power distance, local stay-at-home mandates...etc.
 
 
 ```{r lib and data, echo=FALSE, message=FALSE, warning=FALSE}
@@ -30,6 +31,8 @@ library(readr)
 library(tidyverse)
 library(car)
 library(ggplot2)
+library(ggrepel)
+library(sjPlot)
 
 #read in data
 
@@ -39,8 +42,7 @@ data <- read_csv("data/Data.csv")
 
 ```{r explore and transfrom data, echo=FALSE}
 
-#look at the dataframe, see what variables do we have
-head(data)
+
 
 #centering variables by zscorsing them using the scale function
 
@@ -77,59 +79,264 @@ data$OCTDeaths<-log(data$Oct16_total_deaths_per_million)
 
 #calculating a distribution of test/cases (in many countries only the really sick got tested, which might make it seem like the cases were low)
 data$TestsPerCaseOct<-data$Oct16_total_tests/data$Oct16_total_cases
+data$ZTestsPerCaseOct<-scale(data$TestsPerCaseOct)
 
 
 ```
-## Reproducing Figue 1: The association of cultural tightness and logged cases per million (Oct 2020) *the scatterplot doesn't inlcude any covariates
+
+## Reproducing Figue 1
+
+The association of cultural tightness and logged cases per million (Oct 2020) *the scatterplot doesn't inlcude any covariates
 
 
-```{r regression 1, echo=FALSE, message=FALSE, warning=FALSE}
+```{r cor 1, echo=FALSE, message=FALSE, warning=FALSE}
 
-# run regression without controls # I looked at the code and they ran a correlation actually to produce the graph so maybe I should too?
-lm(OCTCases~ZTightness, data=data)
+#run corrolation test for tightness and cases without any controls
+cor.test(data$ZTightness,data$OCTCases) #p=-0.406
 
-data %>%
- ggplot(aes(x = ZTightness, y = OCTCases)) +
- geom_point(colour = "red") + geom_text(hjust=0.05, nudge_x = 0.05, label=data$Country)+
-  geom_smooth(method = "lm", fill = NA)+
-  labs(x="Cultural Tightness", y="Log of COVID-19 cases per million as of Oct 16")
+figure1<-ggplot(data, aes(x = Tightness, y = OCTCases))+
+  geom_point(colour = "red", size=1) + 
+  geom_text(hjust=0.005, nudge_x = 0.005, label=data$Country, size=2)+
+geom_smooth(method = "lm", fill = NA, se=TRUE)+
+  labs(x="Cultural Tightness", y="Log of COVID-19 cases per million as of Oct 16")+
+  theme(legend.position = "none")
 
+figure1
 
-lmodel <- lm(sqrt(ZTightness) ~ sqrt(OCTCases), data = data)
-lmodel$coefficients
-summary(lmodel)
+# I tried running their original code, but it doesn't include the labels for the countries
+#plot1<-ggplot(data, aes(x=Tightness, y=OCTCases))+
+#  labs(x="Cultural Tightness",y="Log of COVID-19 Cases Per Million as of October 16th")+
+#  theme_classic(base_size = 15)+
+#  geom_smooth(method=lm, se=TRUE, color="black", fill = "#B8B8B8")+
+#  geom_point(color="#cd5b45", size=3)+
+# theme(legend.position = "none",axis.text.x = element_text(color="#000000"),
+#        axis.text.y = element_text(color="#000000")) 
+# plot1
+ 
+#save Figure 1
+ggsave("cases_oct.png", figure1,width=12,height=12,units="in")
 
-#add in controls #how did they decide what to add in which model? They had 10 models!!
-
-#lm(OCTCases~ZTightness+, data=data)
 
 ```
 
-## Reproducing Figue 2: The association of cultural tightness and logged deaths per million (Oct 2020) *the scatterplot doesn't inlcude any covariates
+## Reproducing Figue 2
+
+The association of cultural tightness and logged deaths per million (Oct 2020) *the scatterplot doesn't inlcude any covariates
+
+```{r cor 2, echo=FALSE, message=FALSE, warning=FALSE}
 
 
-```{r regression 2, echo=FALSE, message=FALSE, warning=FALSE}
+#run corrolation test for tightness and death without any controls
+cor.test(data$ZTightness,data$OCTDeaths) #p=-0.4537
 
-# run regression without controls # I looked at the code and they ran a correlation actually to produce the graph so maybe I should too?
-lm(OCTDeaths~ZTightness, data=data)
+#make ggplot of the correlation
+figure2<-ggplot(data, aes(x = Tightness, y = OCTDeaths))+
+  geom_point(colour = "red", size=1) + 
+  geom_text(hjust=0.005, nudge_x = 0.005, label=data$Country, size=2)+
+geom_smooth(method = "lm", fill = NA, se=TRUE)+
+  labs(x="Cultural Tightness", y="Log of COVID-19 cases per million as of Oct 16")+
+  theme(legend.position = "none")
 
-data %>%
- ggplot(aes(x = ZTightness, y = OCTDeaths)) +
- geom_point(colour = "red") + geom_text(hjust=0.05, nudge_x = 0.05, label=data$Country)+
-  geom_smooth(method = "lm", fill = NA)+
-  labs(x="Cultural Tightness", y="Log of COVID-19 deaths per million as of Oct 16")
+figure2
 
-
-lmodel <- lm(sqrt(ZTightness) ~ sqrt(OCTDeaths), data = data)
-lmodel$coefficients
-summary(lmodel)
-
-#add in controls #how did they decide what to add in which model? They had 10 models!!
-
-#lm(OCTDeaths~ZTightness+, data=data)
+#save Figure 2
+ggsave("deaths_oct.png", figure2,width=12,height=12,units="in")
 
 ```
 
+## Reproducing Table 1 
+
+### Logged сases per million (10 regression models with different covariates)
+
+```{r table1, echo=FALSE}
+
+summary(Model1<- lm((OCTCases) ~ 
+                 ZTestsPerCaseOct+
+                 ZGDP.capita+
+                 ZGini+
+                 Zlog_PopDensity+
+                 ZpercentMigrants+
+                 ZGovernment.efficiency,data=data))
+
+summary(Model2<- lm((OCTCases) ~ 
+                 ZTestsPerCaseOct+
+                 ZGDP.capita+
+                 ZGini+
+                 Zlog_PopDensity+
+                 ZpercentMigrants+
+                 ZGovernment.efficiency+
+                 ZTightness, data=data))
+
+summary(Model3<- lm((OCTCases) ~ 
+                 ZOct16_total_tests_per_thousand+
+                 ZGDP.capita+
+                 ZGini+
+                 Zlog_PopDensity+
+                 ZpercentMigrants+
+                 ZGovernment.efficiency+
+                 ZTightness, data=data))
+
+summary(Model4<- lm((OCTCases) ~ 
+                 ZUnderreporting+
+                 ZGDP.capita+
+                 ZGini+
+                 Zlog_PopDensity+
+                 ZpercentMigrants+
+                 ZGovernment.efficiency+
+                 ZTightness, data=data))
+
+summary(Model5<- lm((OCTCases) ~ 
+                 ZLogBeds+
+                 ZGDP.capita+
+                 ZGini+
+                 Zlog_PopDensity+
+                 ZpercentMigrants+
+                 ZGovernment.efficiency+
+                 ZTightness, data=data))
+
+summary(Model6<- lm((OCTCases) ~ 
+                 ZTestsPerCaseOct+
+                 ZGDP.capita+
+                 ZGini+
+                 Zlog_PopDensity+
+                 ZpercentMigrants+
+                 ZGovernment.efficiency+
+                 ZTightness+
+                 ZCollectivism+
+                 ZPowerdistance, data=data))
+
+summary(Model7<- lm((OCTCases) ~ 
+                 ZTestsPerCaseOct+
+                 ZGDP.capita+
+                 ZGini+
+                 Zlog_PopDensity+
+                 ZpercentMigrants+
+                 ZGovernment.efficiency+
+                 ZTightness+
+                 ZAuthoritarian, data=data))
+
+summary(Model8<- lm((OCTCases) ~ 
+                 ZTestsPerCaseOct+
+                 ZGDP.capita+
+                 ZGini+
+                 Zlog_PopDensity+
+                 ZpercentMigrants+
+                 ZGovernment.efficiency+
+                 ZTightness+
+                 ZMedian_Age, data=data))
+
+summary(Model9<- lm((OCTCases) ~ 
+                 ZTestsPerCaseOct+
+                 ZGDP.capita+
+                 ZGini+
+                 Zlog_PopDensity+
+                 ZpercentMigrants+
+                 ZGovernment.efficiency+
+                 ZTightness+
+                 Zday_diff, data=data))
+
+summary(Model10<- lm((OCTCases) ~ 
+                 ZTestsPerCaseOct+
+                 ZGDP.capita+
+                 ZGini+
+                 Zlog_PopDensity+
+                 ZpercentMigrants+
+                 ZGovernment.efficiency+
+                 ZTightness+
+                 ZStringencyIndex, data=data))
+
+```
+
+### Creating table with all 10 models
+
+```{r model10, echo=FALSE}
+
+tab_model(Model1, Model2, Model3, Model4, Model5, Model6, Model7, Model8, Model9, Model10,dv.labels = c('Model 1', 'Model 2', 'Model 3', 'Model 4', 'Model 5', 'Model 6', 'Model 7', 'Model 8', 'Model 9', 'Model 10'))
+
+```
+
+## Reproducing Table 2
+
+### Logged deaths per million (7 regression models with different covariats)
+
+```{r table2, echo=FALSE}
+
+summary(Model1<-lm(OCTDeaths~
+                      ZMortality+
+                      ZGDP.capita+
+                      ZGini+
+                      Zlog_PopDensity+
+                      ZpercentMigrants+
+                      ZGovernment.efficiency ,data=data))
+
+summary(Model2<-lm(OCTDeaths~
+                      ZMortality+
+                      ZGDP.capita+
+                      ZGini+
+                      Zlog_PopDensity+
+                      ZpercentMigrants+
+                      ZGovernment.efficiency+
+                      ZTightness,data=data))
+
+summary(Model3<-lm(OCTDeaths~
+                      ZMortality+
+                      ZGDP.capita+
+                      ZGini+
+                      Zlog_PopDensity+
+                      ZpercentMigrants+
+                      ZGovernment.efficiency+
+                      ZTightness+
+                      ZCollectivism+
+                      ZPowerdistance,data=data))
+
+summary(Model4<-lm(OCTDeaths~
+                      ZMortality+
+                      ZGDP.capita+
+                      ZGini+
+                      Zlog_PopDensity+
+                      ZpercentMigrants+
+                      ZGovernment.efficiency+
+                      ZTightness+
+                      ZAuthoritarian,data=data))
+
+summary(Model5<-lm(OCTDeaths~
+                      ZMortality+
+                      ZGDP.capita+
+                      ZGini+
+                      Zlog_PopDensity+
+                      ZpercentMigrants+
+                      ZGovernment.efficiency+
+                      ZTightness+
+                      ZMedian_Age,data=data))
+
+summary(Model6<-lm(OCTDeaths~
+                      ZMortality+
+                      ZGDP.capita+
+                      ZGini+
+                      Zlog_PopDensity+
+                      ZpercentMigrants+
+                      ZGovernment.efficiency+
+                      ZTightness+
+                      Zday_diff,data=data))
+
+summary(Model7<-lm(OCTDeaths~
+                      ZMortality+
+                      ZGDP.capita+
+                      ZGini+
+                      Zlog_PopDensity+
+                      ZpercentMigrants+
+                      ZGovernment.efficiency+
+                      ZTightness+
+                      ZStringencyIndex,data=data))
+
+```
+
+### Creating table with all 7 models
+
+```{r model7, echo=FALSE}
+
+tab_model(Model1, Model2, Model3, Model4, Model5, Model6, Model7,dv.labels = c('Model 1', 'Model 2', 'Model 3', 'Model 4', 'Model 5', 'Model 6', 'Model 7'))
 
 
 
+```
