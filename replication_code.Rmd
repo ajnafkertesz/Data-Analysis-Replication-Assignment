@@ -343,3 +343,15 @@ tab_model(Model1, Model2, Model3, Model4, Model5, Model6, Model7,dv.labels = c('
 
 
 ```
+
+
+## Discussion and reflection
+
+Overall, my data replication project was very successful and I was able to replicate the models as well as the plots. Interestingly, the open-access code for the figures didn't actually produce the plot they had in the paper, but I was able to use some of the ggplot features and create an almost identical graph. 
+
+Otherwise, I found the replication project relatively easy, since the data was already cleaned and well organized, which I personally find the hardest part of data analysis. 
+
+
+
+
+
