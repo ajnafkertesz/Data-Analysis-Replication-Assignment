@@ -153,6 +153,9 @@ ggsave("deaths_oct.png", figure2,width=12,height=12,units="in")
 
 ```{r table1, echo=FALSE}
 
+#creating the regressions with the variables included in table 1.
+#using the lm function and summarizing them by using summary
+
 summary(Model1<- lm((OCTCases) ~ 
                  ZTestsPerCaseOct+
                  ZGDP.capita+
@@ -254,6 +257,8 @@ summary(Model10<- lm((OCTCases) ~
 
 ```{r model10, echo=FALSE}
 
+#using the tab_model function to inlcude all models in one table
+
 tab_model(Model1, Model2, Model3, Model4, Model5, Model6, Model7, Model8, Model9, Model10,dv.labels = c('Model 1', 'Model 2', 'Model 3', 'Model 4', 'Model 5', 'Model 6', 'Model 7', 'Model 8', 'Model 9', 'Model 10'))
 
 ```
@@ -263,6 +268,9 @@ tab_model(Model1, Model2, Model3, Model4, Model5, Model6, Model7, Model8, Model9
 ### Logged deaths per million (7 regression models with different covariats)
 
 ```{r table2, echo=FALSE}
+
+#creating the regressions with the variables included in table 2.
+#using the lm function and summarizing them by using summary
 
 summary(Model1<-lm(OCTDeaths~
                       ZMortality+
@@ -338,8 +346,10 @@ summary(Model7<-lm(OCTDeaths~
 
 ```{r model7, echo=FALSE}
 
-tab_model(Model1, Model2, Model3, Model4, Model5, Model6, Model7,dv.labels = c('Model 1', 'Model 2', 'Model 3', 'Model 4', 'Model 5', 'Model 6', 'Model 7'))
+#using the tab_model function to inlcude all models in one table
 
+
+tab_model(Model1, Model2, Model3, Model4, Model5, Model6, Model7,dv.labels = c('Model 1', 'Model 2', 'Model 3', 'Model 4', 'Model 5', 'Model 6', 'Model 7'))
 
 
 ```
