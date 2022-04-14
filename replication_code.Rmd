@@ -1,7 +1,7 @@
 ---
 title: "Data Replication Assignment using Gelfand et al. 2021"
-author: "Ajna Kertesz"
-date: "4/7/2022"
+author: "Ajna F. Kertesz"
+date: "4/13/2022"
 output:
   html_document:
     toc: yes
@@ -16,11 +16,14 @@ knitr::opts_chunk$set(echo = TRUE, fig.path = "images/")
 
 ## Briefly about the project
 
-This project is aimed and replicating some of the major findings of Gelfand et al. 2021 using open access data on COVID-19, as well as CTL scores by countries. 
+This project is aimed at replicating the major findings of Gelfand et al. 2021 using open access data on COVID-19, as well as CTL scores by countries. 
 
-The original cross-national analysis used Cultural Tightness Looseness (CTL) Scores to predict COVID-19 cases and death. Previous studies indicate that there is a large between-country variation in CTL scores. Some countries are more "tight", which means they have more norms in their society and they follow these norms more closely, while other countries are more "loose", with less norms and expectations in their society. The COVID-19 pandemic presented and interesting situation, where norm conformity and compliance with new norms and health recommendations (e.g., mask-wearing, social distancing...etc) became a direct predictor of infection and death rates. Therefore Gelfand and her colleges were interested in investigating weather traditionally tighter countries did indeed have lower infection and death rates. 
+The original cross-national analysis used Cultural Tightness Looseness (CTL) Scores to predict COVID-19 cases and death. Previous studies indicate that there is a large between-country variation in CTL scores. Some countries are more "tight", which means they have more norms in their society and they follow these norms more closely, while other countries are more "loose", with less norms and expectations in their society. The COVID-19 pandemic presented an interesting situation, where norm conformity and compliance with new norms and health recommendations (e.g., mask-wearing, social distancing...etc) became a direct predictor of infection and death rates. Therefore, Gelfand and her colleges were interested in investigating whether traditionally tighter countries did indeed have lower infection and death rates. 
 
-To do this they used ordinary least squares regression models where CTL was used as a predictor of COVID-19 infection rates. Next they ran a second regression using CTL as a predictor of COVID-19 death rates. In both models, they adjusted for a number of covariaties including GINI, population density, power distance, local stay-at-home mandates...etc.
+First they ran simple correlations between centered CTL scores and infection and death rates. They graphed the line of best fit for these two correlation.
+Next, they used ordinary least squares regression models where CTL was used as a predictor of COVID-19 infection rates. After this, they ran a second regression using CTL as a predictor of COVID-19 death rates. In both models, they adjusted for a number of covariaties including GINI, population density, power distance, local stay-at-home mandates...etc.
+
+Below, I am replicating these models and plots.
 
 
 ```{r lib and data, echo=FALSE, message=FALSE, warning=FALSE}
@@ -86,17 +89,17 @@ data$ZTestsPerCaseOct<-scale(data$TestsPerCaseOct)
 
 ## Reproducing Figue 1
 
-The association of cultural tightness and logged cases per million (Oct 2020) *the scatterplot doesn't inlcude any covariates
+The association of cultural tightness and logged cases per million (Oct 2020) *the scatterplot doesn't include any covariates
 
 
 ```{r cor 1, echo=FALSE, message=FALSE, warning=FALSE}
 
-#run corrolation test for tightness and cases without any controls
+#run correlation test for tightness and cases without any controls
 cor.test(data$ZTightness,data$OCTCases) #p=-0.406
 
 figure1<-ggplot(data, aes(x = Tightness, y = OCTCases))+
   geom_point(colour = "red", size=1) + 
-  geom_text(hjust=0.005, nudge_x = 0.005, label=data$Country, size=2)+
+  geom_text(hjust=0.005, nudge_x = 0.005, label=data$Country, size=1.5, check_overlap = TRUE)+
 geom_smooth(method = "lm", fill = NA, se=TRUE)+
   labs(x="Cultural Tightness", y="Log of COVID-19 cases per million as of Oct 16")+
   theme(legend.position = "none")
@@ -132,7 +135,7 @@ cor.test(data$ZTightness,data$OCTDeaths) #p=-0.4537
 #make ggplot of the correlation
 figure2<-ggplot(data, aes(x = Tightness, y = OCTDeaths))+
   geom_point(colour = "red", size=1) + 
-  geom_text(hjust=0.005, nudge_x = 0.005, label=data$Country, size=2)+
+  geom_text(hjust=0.005, nudge_x = 0.005, label=data$Country, size=2, check_overlap = TRUE)+
 geom_smooth(method = "lm", fill = NA, se=TRUE)+
   labs(x="Cultural Tightness", y="Log of COVID-19 cases per million as of Oct 16")+
   theme(legend.position = "none")
