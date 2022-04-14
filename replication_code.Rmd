@@ -91,6 +91,14 @@ data$ZTestsPerCaseOct<-scale(data$TestsPerCaseOct)
 
 The association of cultural tightness and logged cases per million (Oct 2020) *the scatterplot doesn't include any covariates
 
+### Original figure 1
+
+```{r echo=FALSE, out.width="##%"}
+knitr::include_graphics("images/Screenshot 2022-04-07 at 9.43.56 AM.png")
+
+```
+
+### Reproduced Figure 1
 
 ```{r cor 1, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -126,6 +134,15 @@ ggsave("cases_oct.png", figure1,width=12,height=12,units="in")
 
 The association of cultural tightness and logged deaths per million (Oct 2020) *the scatterplot doesn't inlcude any covariates
 
+### Original Figure 2
+
+```{r echo=FALSE, out.width="##%"}
+knitr::include_graphics("images/Screenshot 2022-04-07 at 9.44.15 AM.png")
+
+```
+
+### Reporoduced Figure 2
+
 ```{r cor 2, echo=FALSE, message=FALSE, warning=FALSE}
 
 
@@ -134,7 +151,7 @@ cor.test(data$ZTightness,data$OCTDeaths) #p=-0.4537
 
 #make ggplot of the correlation
 figure2<-ggplot(data, aes(x = Tightness, y = OCTDeaths))+
-  geom_point(colour = "red", size=1) + 
+  geom_point(colour = "turquoise", size=1) + 
   geom_text(hjust=0.005, nudge_x = 0.005, label=data$Country, size=2, check_overlap = TRUE)+
 geom_smooth(method = "lm", fill = NA, se=TRUE)+
   labs(x="Cultural Tightness", y="Log of COVID-19 cases per million as of Oct 16")+
